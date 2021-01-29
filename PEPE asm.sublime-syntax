@@ -1,0 +1,72 @@
+%YAML 1.2
+
+---
+
+name : PEPE asm
+file_extensions : asm 
+scope : source.asm
+
+contexts :
+  main :
+    - include : string_literal
+
+    # Assembly Instructions
+    - match : \b(ADDC|SUBB|MUL|DIV|MOD|AND|OR|XOR|TEST|ADD|SUB|CMP|BIT|SET|CLR|CPL|SHRA|SHLA|SHL|SHR|OR|RORC|ROR|ROLC|ROL|MOVL|MOVH|NEG|NOT|PUSH|POP|(E|D)I|(E|D)I[0-3]|(SET|CLR)C|(E|D)DMA|CPLC|PUSHC|POPC|JZ|JNZ|JN|JNN|JP|JNP|JC|JNC|JV|JNV|JEQ|JNE|JLT|JLE|JGT|JGE|JA|JAE|JB|JBE|MOV|MOVB|MOVBS|MOVP|SWAP|JMP|CALL|CALLF|RET|RETF|SWE|RFE|NOP)\b
+      scope : support.constant
+
+    # Assembler Directives
+    - match : \b(PLACE|EQU|WORD|STRING|TABLE)\b
+      scope : entity.name.function
+
+    - include : register
+
+    # Start of memory acess
+    - match : \[
+      scope : keyword.control
+      push : mem_access
+  
+    # Label
+    - match : \b(([a-z]|[A-Z]|_)([a-z]|[A-Z]|[0-9]|_)*:)
+      scope : keyword.control
+  
+    # Comment
+    - match : ;.*$
+      scope : comment.line
+
+    - include : integer_literal
+
+    # Character
+    - match : \'.\'
+      scope : string.quoted.single
+
+
+  mem_access :
+    - include : register
+
+    - include : integer_literal
+
+    - match : \]
+      scope : keyword.control
+      pop : true
+
+
+  register :
+    - match : \b(R[0-9]|R1[0-5]|RL|SP|RE|BTE|USP|TEMP)\b
+      scope : entity.name.function
+
+  integer_literal :
+    - match : \b([0-9]+(d|))\b|\b([0-9]([0-9]|[A-F])+H)\b|\b([0-1]+b)\b
+      scope : constant.numeric
+
+  string_literal :
+    - match : '"'
+      scope : meta.string
+      push : string
+
+  string : 
+    - meta_scope : string.quoted.double
+    - match : \\.
+      scope : constant.character.escape.asm    
+    - match : '"'
+      pop : true
+
